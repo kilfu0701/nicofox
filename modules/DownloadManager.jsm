@@ -443,9 +443,12 @@ DownloadManager.startup = function() {
   prefObserver.register();
   
   /* Private Browsing checking XXX: 1.9.1b2- compatibility */
-  var privateSvc = Cc["@mozilla.org/privatebrowsing;1"].getService(Ci.nsIPrivateBrowsingService);
-  inPrivateBrowsing = privateSvc.privateBrowsingEnabled;  
-    
+  if (Ci.nsIPrivateBrowsingService) {
+    var privateSvc = Cc["@mozilla.org/privatebrowsing;1"].getService(Ci.nsIPrivateBrowsingService);
+    inPrivateBrowsing = privateSvc.privateBrowsingEnabled;
+  } else {
+    inPrivateBrowsing = false;
+  }
   /* Read the preference */
   downloadMax = Core.prefs.getIntPref("download_max");
 
@@ -857,7 +860,7 @@ downloadQueueRunner.dbFail = function() {
 /* Handle downloader (DownloadUtils.nico) events. In the function, this will be the downloader instance. */
 function handleDownloaderEvent(type, content) {
   /* To prevent "stop" to be called when canceled */
-  if(this._canceled && type != "cancel" && type != "fail") { return; }
+  if(this._canceled && type != "cancel" && type != "fail" && type != "pause") { return; }
   var id = this.dbId;
   
   switch(type) {
